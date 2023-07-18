@@ -100,6 +100,10 @@ public:
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
     }
+    void setUni1i(const std::string &name, GLuint unit)
+    {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), unit);
+    }
 
 private:
     // utility function for checking shader compilation/linking errors.

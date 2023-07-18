@@ -1,9 +1,14 @@
 #version 330 core
 
 out vec4 FragColor;
-in vec3 colour;
+
+in vec2 texCoords;
+in float lightStrength;
+
+uniform sampler2D tex;
 
 void main()
 {
-    FragColor = vec4(colour, 1.0f);
+    vec4 color = texture(tex, texCoords);
+    FragColor = vec4(color.r * lightStrength, color.g * lightStrength, color.b * lightStrength, 1);
 }

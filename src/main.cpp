@@ -1,23 +1,30 @@
+#include <iostream>
+#include <cmath>
+#include <array>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <cmath>
+#include <stb_image.h>
 
 #include "Shader.hpp"
+#include "Camera.hpp"
+#include "CubeRenderer.hpp"
+#include "Block.hpp"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-} 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-void processInput(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
+void processInput(GLFWwindow* window);
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+void mouse_callback(GLFWwindow* window, int button, int action, int mods);
+
+void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float deltaTime);
 
 int main()
 {
@@ -36,7 +43,10 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -46,104 +56,141 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    Shader shaderProgram("./shader.vs", "./shader.fs");
-
-    float vertices[] = {
-        -0.5f, -0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-        0.5f, 0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-        -0.5f, 0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-        -0.5f, -0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-        0.5f, 0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-        0.5f, -0.5f, 0.5f, 0.5f, 0.2f, 0.3f,
-
-        -0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.3f,
-        -0.5f, 0.5f, -0.5f, 0.2f, 0.2f, 0.3f,
-        -0.5f, 0.5f, 0.5f, 0.2f, 0.2f, 0.3f,
-        -0.5f, -0.5f, 0.5f, 0.2f, 0.2f, 0.3f,
-        -0.5f, 0.5f, -0.5f, 0.2f, 0.2f, 0.3f,
-        -0.5f, -0.5f, -0.5f, 0.2f, 0.2f, 0.3f,
-    };
-
-    glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f),
-        glm::vec3( 1.3f, -2.0f, -2.5f),
-        glm::vec3( 1.5f,  2.0f, -2.5f),
-        glm::vec3( 1.5f,  0.2f, -1.5f),
-        glm::vec3(-1.3f,  1.0f, -1.5f)
-    };
-
-    GLuint VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
-    glEnableVertexAttribArray(1);
-
     glViewport(0, 0, 800, 600);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    const int CAMERA_SLOW = 1000;
+    Shader shaderProgram("./shader.vs", "./shader.fs");
+    Camera playerCamera;
+
+    CubeRenderer cubeRenderer;
+    cubeRenderer.initialiseBuffers();
+    cubeRenderer.loadTextures();
+
+    srand(time(0));
+    std::array<std::array<std::array<Block, 10>, 100>, 100> blocks;
+    for (int i = 0; i < 100; i++)
+    {
+        for (int j = 0; j < 100; j++)
+        {
+            for (int p = 0; p < 10; p++)
+            {
+                Block block;
+                if (rand() % 5 > 0)
+                {
+                    block.type = 1;
+                }
+                else
+                {
+                    block.type = 0;
+                }
+                block.type = 1;
+                blocks[i][j][p] = block;
+            }
+        }
+    }
+    // testing visible faces
+    for (int x = 0; x < 100; x++)
+    {
+        for (int z = 0; z < 100; z++)
+        {
+            for (int y = 0; y < 10; y++)
+            {
+                Block& block = blocks[x][z][y];
+                if (x > 0)
+                {
+                    if (blocks[x - 1][z][y].type == 1)
+                    {
+                        blocks[x][z][y].nXVisible = false;
+                    }
+                }
+                if (x < 99)
+                {
+                    if (blocks[x + 1][z][y].type == 1)
+                    {
+                        blocks[x][z][y].pXVisible = false;
+                    }
+                }
+                if (z > 0)
+                {
+                    if (blocks[x][z - 1][y].type == 1)
+                    {
+                        blocks[x][z][y].nZVisible = false;
+                    }
+                }
+                if (z < 99)
+                {
+                    if (blocks[x][z + 1][y].type == 1)
+                    {
+                        blocks[x][z][y].pZVisible = false;
+                    }
+                }
+                if (y > 0)
+                {
+                    if (blocks[x][z][y - 1].type == 1)
+                    {
+                        blocks[x][z][y].nYVisible = false;
+                    }
+                }
+                if (y < 9)
+                {
+                    if (blocks[x][z][y + 1].type == 1)
+                    {
+                        blocks[x][z][y].pYVisible = false;
+                    }
+                }
+            }
+        }
+    }
+
     const float MOVE_SPEED = 1.6f;
-    glm::vec3 camera_pos(0.0f, 0.0f, -3.0f);
 
     float lastTime = glfwGetTime();
+
+    float lastFps = 0;
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     while (!glfwWindowShouldClose(window))
     {
 
-        processInput(window);
+        //processInput(window);
 
         float deltaTime = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
 
-        double xpos, ypos;
-        glfwGetCursorPos(window, &xpos, &ypos);
-
-        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        lastFps += deltaTime;
+        if (lastFps >= 0.5)
         {
-            camera_pos.z -= MOVE_SPEED * deltaTime;
-        }
-        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {
-            camera_pos.z += std::cos((float)xpos / CAMERA_SLOW) * MOVE_SPEED * deltaTime;
-            camera_pos.x += std::sin((float)xpos / CAMERA_SLOW) * MOVE_SPEED * deltaTime;
+            lastFps = 0;
+            std::cout << "FPS: " << 1 / deltaTime << "\n";
         }
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        updateCamera(window, playerCamera, MOVE_SPEED, deltaTime);
+
+        glClearColor(0.2, 0.6, 0.7, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.use();
 
-        glm::mat4 view = glm::mat4(1.0f);
-        view = glm::rotate(view, (float)xpos / CAMERA_SLOW, glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::rotate(view, (float)ypos / CAMERA_SLOW, glm::vec3(1.0f, 0.0f, 0.0f));
-        view = glm::translate(view, camera_pos);
-        glm::mat4 projection;
-        projection = glm::perspective(glm::radians(55.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        glm::mat4 viewMatrix = playerCamera.calcViewMatrix();
+        glm::mat4 projectionMatrix = playerCamera.calcProjectionMatrix(800, 600);
 
-        shaderProgram.setMat4("view", view);
-        shaderProgram.setMat4("projection", projection);
+        shaderProgram.setMat4("view", viewMatrix);
+        shaderProgram.setMat4("projection", projectionMatrix);
 
-        glBindVertexArray(VAO);
-        for (int i = 0; i < 10; i++)
+        //cubeRenderer.renderCube(shaderProgram, glm::vec3(0, 0, -1), glm::vec3(0, 1, 0), 0, glm::vec3(0.2, 0.2, 0.2));
+
+        for (int x = 0; x < 100; x++)
         {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            model = glm::rotate(model, (float)glfwGetTime() + i * 5, glm::vec3(0.4f, 0.6f, 0.2f));
-            shaderProgram.setMat4("model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 12);
+            for (int z = 0; z < 100; z++)
+            {
+                for (int y = 0; y < 10; y++)
+                {
+                    if (blocks[x][z][y].type == 1)
+                    {
+                        cubeRenderer.renderCube(shaderProgram, blocks[x][z][y], glm::vec3(x * 0.4, y * 0.4, z * 0.4), glm::vec3(0, 1, 0), 0, glm::vec3(0.2, 0.2, 0.2));
+                    }
+                }
+            }
         }
 
         glfwSwapBuffers(window);
@@ -154,5 +201,92 @@ int main()
     glfwTerminate();
 
     return 0;
+
+}
+
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+
+    int inputMode = glfwGetInputMode(window, GLFW_CURSOR);
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        if (inputMode == GLFW_CURSOR_DISABLED)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+        else
+        {
+            glfwSetWindowShouldClose(window, true);
+        }
+    }
+    
+}
+
+void mouse_callback(GLFWwindow* window, int button, int action, int mods)
+{
+
+    int inputMode = glfwGetInputMode(window, GLFW_CURSOR);
+
+    if (inputMode == GLFW_CURSOR_NORMAL)
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT)
+        {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwSetCursorPos(window, 800 / 2, 600 / 2);
+        }
+    }
+
+}
+
+void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float deltaTime)
+{
+
+    if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED)
+    {
+        return;
+    }
+
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+
+    glm::vec2 mouse_rotation;
+    mouse_rotation.y = static_cast<float>(ypos - (600 / 2)) / 600;
+    mouse_rotation.x = static_cast<float>(xpos - (800 / 2)) / 800;
+
+    glfwSetCursorPos(window, 800 / 2, 600 / 2);
+    
+    camera.updateDirection(mouse_rotation);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Forward, moveSpeed, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Back, moveSpeed, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Left, moveSpeed, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Right, moveSpeed, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Up, moveSpeed, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        camera.move(CameraMoveDir::Down, moveSpeed, deltaTime);
+    }
 
 }
