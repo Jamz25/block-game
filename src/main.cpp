@@ -10,6 +10,7 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h>
+#include <OpenSimplexNoise.h>
 
 #include "Shader.hpp"
 #include "Camera.hpp"
@@ -25,6 +26,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, int button, int action, int mods);
 
 void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float deltaTime);
+
+glm::vec4 mousePicker(GLFWwindow* window, Camera& camera);
 
 int main()
 {
@@ -61,6 +64,7 @@ int main()
 
     Shader shaderProgram("./shader.vs", "./shader.fs");
     Camera playerCamera;
+    playerCamera.setPosition(glm::vec3(10, 10, 5));
 
     CubeRenderer cubeRenderer;
     cubeRenderer.initialiseBuffers();
@@ -68,27 +72,28 @@ int main()
 
     srand(time(0));
     std::array<std::array<std::array<Block, 10>, 100>, 100> blocks;
+    OpenSimplexNoise::Noise terrain_noise(rand());
+    OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
     for (int i = 0; i < 100; i++)
     {
         for (int j = 0; j < 100; j++)
         {
+            double height_value = terrain_noise.eval(i / 10, j / 10) * 3 + terrain_noise1.eval(i / 5, j / 5) * 4 + 3;
             for (int p = 0; p < 10; p++)
             {
-                Block block;
-                if (rand() % 5 > 0)
+                if (p < height_value)
                 {
-                    block.type = 1;
+                    blocks[i][j][p].type = 1;
                 }
                 else
                 {
-                    block.type = 0;
+                    blocks[i][j][p].type = 0;
                 }
-                block.type = 1;
-                blocks[i][j][p] = block;
             }
         }
     }
     // testing visible faces
+    /*
     for (int x = 0; x < 100; x++)
     {
         for (int z = 0; z < 100; z++)
@@ -98,49 +103,86 @@ int main()
                 Block& block = blocks[x][z][y];
                 if (x > 0)
                 {
-                    if (blocks[x - 1][z][y].type == 1)
+                    if (blocks[x - 1][z][y].type == 0)
                     {
-                        blocks[x][z][y].nXVisible = false;
+                        //blocks[x][z][y].nXVisible = false;
+                        block.face_indexes.push_back(10);
+                        block.face_indexes.push_back(1);
+                        block.face_indexes.push_back(17);
+                        block.face_indexes.push_back(1);
+                        block.face_indexes.push_back(17);
+                        block.face_indexes.push_back(4);
                     }
                 }
                 if (x < 99)
                 {
-                    if (blocks[x + 1][z][y].type == 1)
+                    if (blocks[x + 1][z][y].type == 0)
                     {
-                        blocks[x][z][y].pXVisible = false;
+                        //blocks[x][z][y].pXVisible = false;
+                        block.face_indexes.push_back(3);
+                        block.face_indexes.push_back(14);
+                        block.face_indexes.push_back(8);
+                        block.face_indexes.push_back(14);
+                        block.face_indexes.push_back(9);
+                        block.face_indexes.push_back(19);
                     }
                 }
                 if (z > 0)
                 {
-                    if (blocks[x][z - 1][y].type == 1)
+                    if (blocks[x][z - 1][y].type == 0)
                     {
-                        blocks[x][z][y].nZVisible = false;
+                        //blocks[x][z][y].nZVisible = false;
+                        block.face_indexes.push_back(13);
+                        block.face_indexes.push_back(11);
+                        block.face_indexes.push_back(18);
+                        block.face_indexes.push_back(11);
+                        block.face_indexes.push_back(18);
+                        block.face_indexes.push_back(16);
                     }
                 }
                 if (z < 99)
                 {
-                    if (blocks[x][z + 1][y].type == 1)
+                    if (blocks[x][z + 1][y].type == 0)
                     {
-                        blocks[x][z][y].pZVisible = false;
+                        //blocks[x][z][y].pZVisible = false;
+                        block.face_indexes.push_back(0);
+                        block.face_indexes.push_back(2);
+                        block.face_indexes.push_back(5);
+                        block.face_indexes.push_back(2);
+                        block.face_indexes.push_back(5);
+                        block.face_indexes.push_back(7);
                     }
                 }
                 if (y > 0)
                 {
-                    if (blocks[x][z][y - 1].type == 1)
+                    if (blocks[x][z][y - 1].type == 0)
                     {
-                        blocks[x][z][y].nYVisible = false;
+                        //blocks[x][z][y].nYVisible = false;
+                        block.face_indexes.push_back(21);
+                        block.face_indexes.push_back(22);
+                        block.face_indexes.push_back(12);
+                        block.face_indexes.push_back(22);
+                        block.face_indexes.push_back(12);
+                        block.face_indexes.push_back(15);
                     }
                 }
                 if (y < 9)
                 {
-                    if (blocks[x][z][y + 1].type == 1)
+                    if (blocks[x][z][y + 1].type == 0)
                     {
-                        blocks[x][z][y].pYVisible = false;
+                        //blocks[x][z][y].pYVisible = false;
+                        block.face_indexes.push_back(6);
+                        block.face_indexes.push_back(9);
+                        block.face_indexes.push_back(23);
+                        block.face_indexes.push_back(9);
+                        block.face_indexes.push_back(23);
+                        block.face_indexes.push_back(20);
                     }
                 }
             }
         }
     }
+    */
 
     const float MOVE_SPEED = 1.6f;
 
@@ -288,5 +330,19 @@ void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float del
     {
         camera.move(CameraMoveDir::Down, moveSpeed, deltaTime);
     }
+
+}
+
+glm::vec4 mousePicker(GLFWwindow* window, Camera& camera)
+{
+
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    float x = (2 * mouseX) / 800 - 1;
+    float y = (2 * mouseY) / 600 - 1;
+    glm::vec2 normalizedCoords = glm::vec2(x, -y);
+    glm::mat4 inverseProjection = glm::inverse(camera.calcProjectionMatrix(800, 600));
+    //glm::vec4 eyeCoords = normalizedCoords * inverseProjection;
+    
 
 }

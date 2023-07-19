@@ -25,7 +25,7 @@ public:
 
     void loadTextures();
 
-    void renderCube(Shader& shader, Block block_data, glm::vec3 translation, glm::vec3 rotation_axis, float rotation_amount, glm::vec3 scale);
+    void renderCube(Shader& shader, Block& block_data, glm::vec3 translation, glm::vec3 rotation_axis, float rotation_amount, glm::vec3 scale);
 
 private:
     GLuint VBO, EBO, VAO;

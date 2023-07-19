@@ -56,7 +56,7 @@ void CubeRenderer::loadTextures()
 
 }
 
-void CubeRenderer::renderCube(Shader& shader, Block block_data, glm::vec3 translation, glm::vec3 rotation, float rotation_amount, glm::vec3 scale)
+void CubeRenderer::renderCube(Shader& shader, Block& block_data, glm::vec3 translation, glm::vec3 rotation, float rotation_amount, glm::vec3 scale)
 {
 
     glm::mat4 modelMatrix(1);
@@ -69,8 +69,11 @@ void CubeRenderer::renderCube(Shader& shader, Block block_data, glm::vec3 transl
     glBindVertexArray(VAO);
 
     glBindTexture(GL_TEXTURE_2D, textureID);
-    //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, block_data.face_indexes.size() * sizeof(unsigned short), block_data.face_indexes.data(), GL_STATIC_DRAW);
 
+    //glDrawElements(GL_TRIANGLES, block_data.face_indexes.size(), GL_UNSIGNED_SHORT, 0);
+/*
     if (block_data.pZVisible)
     {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -95,6 +98,7 @@ void CubeRenderer::renderCube(Shader& shader, Block block_data, glm::vec3 transl
     {
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)(30 * sizeof(unsigned short)));
     }
+*/
 
     glBindVertexArray(0);
 
