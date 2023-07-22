@@ -8,5 +8,8 @@ EXEC := main.exe
 all:
 	$(CPP) $(SRC_FILES) -o bin/$(EXEC) -O3 $(CPPFLAGS) $(LIBFLAGS)
 
+debug:
+	$(CPP) $(SRC_FILES) -o bin/$(EXEC) -O3 $(CPPFLAGS) $(LIBFLAGS) -g
+
 run:
 	cd bin && ./$(EXEC)

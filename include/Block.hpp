@@ -13,7 +13,7 @@ struct Block
     bool pZVisible = true;
     bool nZVisible = true;
 
-    std::vector<unsigned short> face_indexes;
+    //std::vector<unsigned short> face_indexes;
 };
 
 #endif

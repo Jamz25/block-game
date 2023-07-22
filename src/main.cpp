@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <array>
+#include <memory>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,6 +16,8 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 #include "CubeRenderer.hpp"
+#include "Chunk.hpp"
+#include "ChunkMesh.hpp"
 #include "Block.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -65,130 +68,60 @@ int main()
     Shader shaderProgram("./shader.vs", "./shader.fs");
     Camera playerCamera;
     playerCamera.setPosition(glm::vec3(10, 10, 5));
-
-    CubeRenderer cubeRenderer;
-    cubeRenderer.initialiseBuffers();
-    cubeRenderer.loadTextures();
+    
 
     srand(time(0));
-    std::array<std::array<std::array<Block, 10>, 100>, 100> blocks;
     OpenSimplexNoise::Noise terrain_noise(rand());
     OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
-    for (int i = 0; i < 100; i++)
+
+    std::array<std::array<std::unique_ptr<Chunk>, 10>, 100> chunks;
+    
+    for (int i = 0; i < 100; i ++)
     {
-        for (int j = 0; j < 100; j++)
+        for (int j = 0; j < 10; j++)
         {
-            double height_value = terrain_noise.eval(i / 10, j / 10) * 3 + terrain_noise1.eval(i / 5, j / 5) * 4 + 3;
-            for (int p = 0; p < 10; p++)
+
+            std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
+
+            chunk->initialiseMesh();
+
+            ChunkData chunkData;
+
+            for (int x = 0; x < CHUNK_X_SIZE; x++)
             {
-                if (p < height_value)
+                for (int z = 0; z < CHUNK_Z_SIZE; z++)
                 {
-                    blocks[i][j][p].type = 1;
-                }
-                else
-                {
-                    blocks[i][j][p].type = 0;
+                    
+                    double height_value = terrain_noise.eval((i + x) / 10, (j + z) / 10) * 4 + terrain_noise1.eval((i + x) / 3, (j + z) / 3) * 4 + 4;
+                    for (int y = 0; y < CHUNK_Y_SIZE; y++)
+                    {
+                        if (y < height_value)
+                        {
+                            chunkData[x][z][y].type = 1;
+                        }
+                        else
+                        {
+                            chunkData[x][z][y].type = 0;
+                        }
+                    }
+                    
                 }
             }
+
+            chunk->setData(chunkData);
+            chunk->createMesh();
+            chunk->setWorldPosition(i, j);
+
+            chunks[i][j].swap(chunk);
+
         }
     }
-    // testing visible faces
-    /*
-    for (int x = 0; x < 100; x++)
-    {
-        for (int z = 0; z < 100; z++)
-        {
-            for (int y = 0; y < 10; y++)
-            {
-                Block& block = blocks[x][z][y];
-                if (x > 0)
-                {
-                    if (blocks[x - 1][z][y].type == 0)
-                    {
-                        //blocks[x][z][y].nXVisible = false;
-                        block.face_indexes.push_back(10);
-                        block.face_indexes.push_back(1);
-                        block.face_indexes.push_back(17);
-                        block.face_indexes.push_back(1);
-                        block.face_indexes.push_back(17);
-                        block.face_indexes.push_back(4);
-                    }
-                }
-                if (x < 99)
-                {
-                    if (blocks[x + 1][z][y].type == 0)
-                    {
-                        //blocks[x][z][y].pXVisible = false;
-                        block.face_indexes.push_back(3);
-                        block.face_indexes.push_back(14);
-                        block.face_indexes.push_back(8);
-                        block.face_indexes.push_back(14);
-                        block.face_indexes.push_back(9);
-                        block.face_indexes.push_back(19);
-                    }
-                }
-                if (z > 0)
-                {
-                    if (blocks[x][z - 1][y].type == 0)
-                    {
-                        //blocks[x][z][y].nZVisible = false;
-                        block.face_indexes.push_back(13);
-                        block.face_indexes.push_back(11);
-                        block.face_indexes.push_back(18);
-                        block.face_indexes.push_back(11);
-                        block.face_indexes.push_back(18);
-                        block.face_indexes.push_back(16);
-                    }
-                }
-                if (z < 99)
-                {
-                    if (blocks[x][z + 1][y].type == 0)
-                    {
-                        //blocks[x][z][y].pZVisible = false;
-                        block.face_indexes.push_back(0);
-                        block.face_indexes.push_back(2);
-                        block.face_indexes.push_back(5);
-                        block.face_indexes.push_back(2);
-                        block.face_indexes.push_back(5);
-                        block.face_indexes.push_back(7);
-                    }
-                }
-                if (y > 0)
-                {
-                    if (blocks[x][z][y - 1].type == 0)
-                    {
-                        //blocks[x][z][y].nYVisible = false;
-                        block.face_indexes.push_back(21);
-                        block.face_indexes.push_back(22);
-                        block.face_indexes.push_back(12);
-                        block.face_indexes.push_back(22);
-                        block.face_indexes.push_back(12);
-                        block.face_indexes.push_back(15);
-                    }
-                }
-                if (y < 9)
-                {
-                    if (blocks[x][z][y + 1].type == 0)
-                    {
-                        //blocks[x][z][y].pYVisible = false;
-                        block.face_indexes.push_back(6);
-                        block.face_indexes.push_back(9);
-                        block.face_indexes.push_back(23);
-                        block.face_indexes.push_back(9);
-                        block.face_indexes.push_back(23);
-                        block.face_indexes.push_back(20);
-                    }
-                }
-            }
-        }
-    }
-    */
+
 
     const float MOVE_SPEED = 1.6f;
 
     float lastTime = glfwGetTime();
 
-    float lastFps = 0;
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 
     while (!glfwWindowShouldClose(window))
@@ -199,12 +132,7 @@ int main()
         float deltaTime = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
 
-        lastFps += deltaTime;
-        if (lastFps >= 0.5)
-        {
-            lastFps = 0;
-            std::cout << "FPS: " << 1 / deltaTime << "\n";
-        }
+        glfwSetWindowTitle(window, std::string("original block game   running at " + std::to_string((int)(1 / deltaTime)) + "fps").c_str());
 
         updateCamera(window, playerCamera, MOVE_SPEED, deltaTime);
 
@@ -219,19 +147,11 @@ int main()
         shaderProgram.setMat4("view", viewMatrix);
         shaderProgram.setMat4("projection", projectionMatrix);
 
-        //cubeRenderer.renderCube(shaderProgram, glm::vec3(0, 0, -1), glm::vec3(0, 1, 0), 0, glm::vec3(0.2, 0.2, 0.2));
-
-        for (int x = 0; x < 100; x++)
+        for (int i = 0; i < 100; i++)
         {
-            for (int z = 0; z < 100; z++)
+            for (int j = 0; j < 10; j++)
             {
-                for (int y = 0; y < 10; y++)
-                {
-                    if (blocks[x][z][y].type == 1)
-                    {
-                        cubeRenderer.renderCube(shaderProgram, blocks[x][z][y], glm::vec3(x * 0.4, y * 0.4, z * 0.4), glm::vec3(0, 1, 0), 0, glm::vec3(0.2, 0.2, 0.2));
-                    }
-                }
+                chunks[i][j]->render(shaderProgram);
             }
         }
 

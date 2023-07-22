@@ -11,4 +11,5 @@ void main()
 {
     vec4 color = texture(tex, texCoords);
     FragColor = vec4(color.r * lightStrength, color.g * lightStrength, color.b * lightStrength, 1);
+    //FragColor = color;
 }
