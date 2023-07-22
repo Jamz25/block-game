@@ -4,6 +4,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -36,11 +37,11 @@ public:
     void setData(ChunkData chunkData);
     ChunkData getData();
 
-    void createMesh();
+    void createMesh(Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk);
     void render(Shader& shader);
 
 private:
-    void testMeshSurroundingFaces(int x, int y, int z);
+    void testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk);
 
 private:
     const float SCALE = 0.1;

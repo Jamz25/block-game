@@ -75,12 +75,12 @@ int main()
     OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
 
     std::array<std::array<std::unique_ptr<Chunk>, 10>, 100> chunks;
-    
-    for (int i = 0; i < 100; i ++)
+
+    for (int i = 0; i < 100; i++)
     {
         for (int j = 0; j < 10; j++)
         {
-
+            
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
 
             chunk->initialiseMesh();
@@ -109,10 +109,43 @@ int main()
             }
 
             chunk->setData(chunkData);
-            chunk->createMesh();
+
             chunk->setWorldPosition(i, j);
 
             chunks[i][j].swap(chunk);
+
+        }
+    }
+    
+    for (int i = 0; i < 100; i ++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+
+            std::unique_ptr<Chunk>& chunk = chunks[i][j];
+
+            Chunk* pXChunk = nullptr;
+            if (i < 99)
+            {
+                pXChunk = chunks[i + 1][j].get();
+            }
+            Chunk* nXChunk = nullptr;
+            if (i > 0)
+            {
+                nXChunk = chunks[i - 1][j].get();
+            }
+            Chunk* pZChunk = nullptr;
+            if (j < 9)
+            {
+                pZChunk = chunks[i][j + 1].get();
+            }
+            Chunk* nZChunk = nullptr;
+            if (j > 0)
+            {
+                nZChunk = chunks[i][j - 1].get();
+            }
+            
+            chunk->createMesh(pXChunk, nXChunk, pZChunk, nZChunk);
 
         }
     }

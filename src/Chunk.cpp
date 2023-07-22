@@ -25,7 +25,7 @@ ChunkData Chunk::getData()
     return data;
 }
 
-void Chunk::createMesh()
+void Chunk::createMesh(Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk)
 {
 
     mesh.initialiseBuffers();
@@ -40,7 +40,7 @@ void Chunk::createMesh()
         {
             for (int y = 0; y < CHUNK_Y_SIZE; y++)
             {
-                testMeshSurroundingFaces(x, y, z);
+                testMeshSurroundingFaces(x, y, z, pXChunk, nXChunk, pZChunk, nZChunk);
             }
         }
     }
@@ -49,7 +49,7 @@ void Chunk::createMesh()
 
 }
 
-void Chunk::testMeshSurroundingFaces(int x, int y, int z)
+void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk)
 {
 
     Block& block = data[x][z][y];
@@ -68,19 +68,35 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z)
     }
     else if (x == 0)
     {
-        mesh.addMeshData(FaceDirection::nX, pos, SCALE);
+        if (nXChunk)
+        {
+            if (nXChunk->getData()[CHUNK_X_SIZE - 1][z][y].type == 0)
+                mesh.addMeshData(FaceDirection::nX, pos, SCALE);
+        }
+        else 
+        {
+            mesh.addMeshData(FaceDirection::nX, pos, SCALE);
+        }
     }
 
-    if (x < data.size() - 1)
+    if (x < CHUNK_X_SIZE - 1)
     {
         if (data[x + 1][z][y].type == 0)
         {
             mesh.addMeshData(FaceDirection::pX, pos, SCALE);
         }
     }
-    else if (x == data.size() - 1)
+    else if (x == CHUNK_X_SIZE - 1)
     {
-        mesh.addMeshData(FaceDirection::pX, pos, SCALE);
+        if (pXChunk)
+        {
+            if (pXChunk->getData()[0][z][y].type == 0)
+                mesh.addMeshData(FaceDirection::pX, pos, SCALE);
+        }
+        else
+        {
+            mesh.addMeshData(FaceDirection::pX, pos, SCALE);
+        }
     }
 
 
@@ -93,19 +109,36 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z)
     }
     else if (z == 0)
     {
-        mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
+        if (nZChunk)
+        {
+            if (nZChunk->getData()[x][CHUNK_Z_SIZE - 1][y].type == 0)
+                mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
+        }
+        else
+        {
+            mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
+        }
     }
+    
 
-    if (z < data[0].size() - 1)
+    if (z < CHUNK_Z_SIZE - 1)
     {
         if (data[x][z + 1][y].type == 0)
         {
             mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
         }
     }
-    else if (z == data[0].size() - 1)
+    else if (z == CHUNK_Z_SIZE - 1)
     {
-        mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
+        if (pZChunk)
+        {
+            if (pZChunk->getData()[x][0][y].type == 0)
+                mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
+        }
+        else
+        {
+            mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
+        }
     }
 
 
@@ -121,14 +154,14 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z)
         mesh.addMeshData(FaceDirection::nY, pos, SCALE);
     }
 
-    if (y < data[0][0].size() - 1)
+    if (y < CHUNK_Y_SIZE - 1)
     {
         if (data[x][z][y + 1].type == 0)
         {
             mesh.addMeshData(FaceDirection::pY, pos, SCALE);
         }
     }
-    else if (y == data[0][0].size() - 1)
+    else if (y == CHUNK_Y_SIZE - 1)
     {
         mesh.addMeshData(FaceDirection::pY, pos, SCALE);
     }
