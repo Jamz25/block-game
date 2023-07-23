@@ -17,8 +17,6 @@ void ChunkMesh::initialiseBuffers()
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
     glBindVertexArray(0);
 
 }
@@ -53,6 +51,7 @@ void ChunkMesh::beginMeshGeneration()
 {
     generating = true;
     vertex_data_generating.clear();
+    vertex_indexes.clear();
 }
 
 void ChunkMesh::endMeshGeneration()
@@ -67,6 +66,9 @@ void ChunkMesh::endMeshGeneration()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertex_data.size(), vertex_data.data(), GL_STATIC_DRAW);
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * vertex_indexes.size(), vertex_indexes.data(), GL_STATIC_DRAW);
+
     glBindVertexArray(0);
 
 }
@@ -77,7 +79,7 @@ void ChunkMesh::addMeshData(FaceDirection faceDir, glm::vec3 local_offset, float
     if (!generating)
         return;
     
-    std::array<Vertex, 6> face_verts;
+    std::array<Vertex, 4> face_verts;
     float lightStrength;
     if (faceDir == FaceDirection::pX)
     {
@@ -119,6 +121,13 @@ void ChunkMesh::addMeshData(FaceDirection faceDir, glm::vec3 local_offset, float
         vertex_data_generating.push_back(vertex);
     }
 
+    vertex_indexes.push_back(vertex_data_generating.size() - 4);
+    vertex_indexes.push_back(vertex_data_generating.size() - 3);
+    vertex_indexes.push_back(vertex_data_generating.size() - 2);
+    vertex_indexes.push_back(vertex_data_generating.size() - 3);
+    vertex_indexes.push_back(vertex_data_generating.size() - 2);
+    vertex_indexes.push_back(vertex_data_generating.size() - 1);
+
     //vertex_data_generating.insert(vertex_data_generating.end(), additional_vertex_data.begin(), additional_vertex_data.end());
 
 }
@@ -129,7 +138,8 @@ void ChunkMesh::renderMesh()
 
     glBindTexture(GL_TEXTURE_2D, textureID);
 
-    glDrawArrays(GL_TRIANGLES, 0, vertex_data.size());
+    //glDrawArrays(GL_TRIANGLES, 0, vertex_data.size());
+    glDrawElements(GL_TRIANGLES, vertex_indexes.size(), GL_UNSIGNED_INT, 0);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 

@@ -12,7 +12,7 @@ void Chunk::setWorldPosition(int x, int z)
     world_z = z;
 
     modelMatrix = glm::mat4(1);
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(world_x * CHUNK_X_SIZE * SCALE, 0, world_z * CHUNK_Z_SIZE * SCALE));
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(world_x * CHUNK_X_SIZE * SCALE * 2, 0, world_z * CHUNK_Z_SIZE * SCALE * 2));
 }
 
 void Chunk::setData(const ChunkData& chunkData)
@@ -66,17 +66,10 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk*
             mesh.addMeshData(FaceDirection::nX, pos, SCALE);
         }
     }
-    else if (x == 0)
+    else if (x == 0 && nXChunk != nullptr)
     {
-        if (nXChunk)
-        {
-            if (nXChunk->getData()[CHUNK_X_SIZE - 1][z][y].type == 0)
-                mesh.addMeshData(FaceDirection::nX, pos, SCALE);
-        }
-        else 
-        {
+        if (nXChunk->getData()[CHUNK_X_SIZE - 1][z][y].type == 0)
             mesh.addMeshData(FaceDirection::nX, pos, SCALE);
-        }
     }
 
     if (x < CHUNK_X_SIZE - 1)
@@ -86,17 +79,10 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk*
             mesh.addMeshData(FaceDirection::pX, pos, SCALE);
         }
     }
-    else if (x == CHUNK_X_SIZE - 1)
+    else if (x == CHUNK_X_SIZE - 1 && pXChunk != nullptr)
     {
-        if (pXChunk)
-        {
-            if (pXChunk->getData()[0][z][y].type == 0)
-                mesh.addMeshData(FaceDirection::pX, pos, SCALE);
-        }
-        else
-        {
+        if (pXChunk->getData()[0][z][y].type == 0)
             mesh.addMeshData(FaceDirection::pX, pos, SCALE);
-        }
     }
 
 
@@ -107,17 +93,10 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk*
             mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
         }
     }
-    else if (z == 0)
+    else if (z == 0 && nZChunk != nullptr)
     {
-        if (nZChunk)
-        {
-            if (nZChunk->getData()[x][CHUNK_Z_SIZE - 1][y].type == 0)
-                mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
-        }
-        else
-        {
+        if (nZChunk->getData()[x][CHUNK_Z_SIZE - 1][y].type == 0)
             mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
-        }
     }
     
 
@@ -128,17 +107,10 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk*
             mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
         }
     }
-    else if (z == CHUNK_Z_SIZE - 1)
+    else if (z == CHUNK_Z_SIZE - 1 && pZChunk != nullptr)
     {
-        if (pZChunk)
-        {
-            if (pZChunk->getData()[x][0][y].type == 0)
-                mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
-        }
-        else
-        {
+        if (pZChunk->getData()[x][0][y].type == 0)
             mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
-        }
     }
 
 

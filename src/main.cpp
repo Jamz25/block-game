@@ -72,7 +72,7 @@ int main()
 
     srand(time(0));
     OpenSimplexNoise::Noise terrain_noise(rand());
-    OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
+    //OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
 
     std::array<std::array<std::unique_ptr<Chunk>, 20>, 20> chunks;
 
@@ -92,7 +92,8 @@ int main()
                 for (int z = 0; z < CHUNK_Z_SIZE; z++)
                 {
                     
-                    double height_value = terrain_noise.eval((i + x) / 10, (j + z) / 10) * 4 + terrain_noise1.eval((i + x) / 3, (j + z) / 3) * 4 + 4;
+                    //double height_value = terrain_noise.eval(i + x, j + z) * 2;
+                    float height_value = j + z;
                     for (int y = 0; y < CHUNK_Y_SIZE; y++)
                     {
                         if (y < height_value)
