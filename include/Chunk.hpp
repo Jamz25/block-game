@@ -34,8 +34,8 @@ public:
 
     void setWorldPosition(int x, int z);
 
-    void setData(ChunkData chunkData);
-    ChunkData getData();
+    void setData(const ChunkData& chunkData);
+    const ChunkData& getData();
 
     void createMesh(Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk);
     void render(Shader& shader);

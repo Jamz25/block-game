@@ -67,18 +67,18 @@ int main()
 
     Shader shaderProgram("./shader.vs", "./shader.fs");
     Camera playerCamera;
-    playerCamera.setPosition(glm::vec3(10, 10, 5));
+    playerCamera.setPosition(glm::vec3(20 * 0.5, 5, 20 * 0.5));
     
 
     srand(time(0));
     OpenSimplexNoise::Noise terrain_noise(rand());
     OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
 
-    std::array<std::array<std::unique_ptr<Chunk>, 10>, 100> chunks;
+    std::array<std::array<std::unique_ptr<Chunk>, 20>, 20> chunks;
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 20; i++)
     {
-        for (int j = 0; j < 10; j++)
+        for (int j = 0; j < 20; j++)
         {
             
             std::unique_ptr<Chunk> chunk = std::make_unique<Chunk>();
@@ -117,15 +117,15 @@ int main()
         }
     }
     
-    for (int i = 0; i < 100; i ++)
+    for (int i = 0; i < 20; i ++)
     {
-        for (int j = 0; j < 10; j++)
+        for (int j = 0; j < 20; j++)
         {
 
             std::unique_ptr<Chunk>& chunk = chunks[i][j];
 
             Chunk* pXChunk = nullptr;
-            if (i < 99)
+            if (i < 19)
             {
                 pXChunk = chunks[i + 1][j].get();
             }
@@ -135,7 +135,7 @@ int main()
                 nXChunk = chunks[i - 1][j].get();
             }
             Chunk* pZChunk = nullptr;
-            if (j < 9)
+            if (j < 19)
             {
                 pZChunk = chunks[i][j + 1].get();
             }
@@ -180,9 +180,9 @@ int main()
         shaderProgram.setMat4("view", viewMatrix);
         shaderProgram.setMat4("projection", projectionMatrix);
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 20; i++)
         {
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < 20; j++)
             {
                 chunks[i][j]->render(shaderProgram);
             }

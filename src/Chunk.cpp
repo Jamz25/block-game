@@ -15,12 +15,12 @@ void Chunk::setWorldPosition(int x, int z)
     modelMatrix = glm::translate(modelMatrix, glm::vec3(world_x * CHUNK_X_SIZE * SCALE, 0, world_z * CHUNK_Z_SIZE * SCALE));
 }
 
-void Chunk::setData(ChunkData chunkData)
+void Chunk::setData(const ChunkData& chunkData)
 {
     data = chunkData;
 }
 
-ChunkData Chunk::getData()
+const ChunkData& Chunk::getData()
 {
     return data;
 }

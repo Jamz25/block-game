@@ -56,7 +56,7 @@ private:
 
     bool generating = false;
 
-    const std::array<Vertex, 6> pX_verts = {
+    static constexpr std::array<Vertex, 6> pX_verts = {
         Vertex{1, -1, 1, 0, 0},
         Vertex{1, -1, -1, 1, 0},
         Vertex{1, 1, 1, 0, 1},
@@ -65,7 +65,7 @@ private:
         Vertex{1, 1, -1, 1, 1}
     };
 
-    const std::array<Vertex, 6> nX_verts = {
+    static constexpr std::array<Vertex, 6> nX_verts = {
         Vertex{-1, -1, -1, 0, 0},
         Vertex{-1, -1, 1, 1, 0},
         Vertex{-1, 1, -1, 0, 1},
@@ -74,7 +74,7 @@ private:
         Vertex{-1, 1, 1, 1, 1}
     };
 
-    const std::array<Vertex, 6> pZ_verts = {
+    static constexpr std::array<Vertex, 6> pZ_verts = {
         Vertex{-1, -1, 1, 0, 0},
         Vertex{1, -1, 1, 1, 0},
         Vertex{-1, 1, 1, 0, 1},
@@ -83,7 +83,7 @@ private:
         Vertex{1, 1, 1, 1, 1}
     };
 
-    const std::array<Vertex, 6> nZ_verts = {
+    static constexpr std::array<Vertex, 6> nZ_verts = {
         Vertex{1, -1, -1, 0, 0},
         Vertex{-1, -1, -1, 1, 0},
         Vertex{1, 1, -1, 0, 1},
@@ -92,7 +92,7 @@ private:
         Vertex{-1, 1, -1, 1, 1}
     };
 
-    const std::array<Vertex, 6> pY_verts = {
+    static constexpr std::array<Vertex, 6> pY_verts = {
         Vertex{-1, 1, 1, 0, 0},
         Vertex{1, 1, 1, 1, 0},
         Vertex{-1, 1, -1, 0, 1},
@@ -101,7 +101,7 @@ private:
         Vertex{1, 1, -1, 1, 1}
     };
 
-    const std::array<Vertex, 6> nY_verts = {
+    static constexpr std::array<Vertex, 6> nY_verts = {
         Vertex{-1, -1, 1, 0, 0},
         Vertex{1, -1, 1, 1, 0},
         Vertex{-1, -1, -1, 0, 1},
