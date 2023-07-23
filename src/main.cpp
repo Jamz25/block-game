@@ -70,7 +70,7 @@ int main()
 
     Shader shaderProgram("./shader.vs", "./shader.fs");
     Camera playerCamera;
-    playerCamera.setPosition(glm::vec3(20 * 0.5, 14, 20 * 0.5));
+    playerCamera.setPosition(glm::vec3(20 * 0.5, 30, 20 * 0.5));
 
     TextureLoader::loadTextures();
 
@@ -100,8 +100,8 @@ int main()
                 {
                     
                     float height_value = noise.GetNoise((float)(x + i * CHUNK_X_SIZE), (float)(z + j * CHUNK_Z_SIZE)) * 5 + 15;
-                    float extra_height = noise_hills.GetNoise((float)(x + i * CHUNK_X_SIZE), (float)(z + j * CHUNK_Z_SIZE)) * 10;
-                    height_value += extra_height + 80;
+                    float extra_height = noise_hills.GetNoise((float)((x + i * CHUNK_X_SIZE) * 0.5), (float)((z + j * CHUNK_Z_SIZE) * 0.5)) * 50;
+                    height_value = std::max(height_value, extra_height) + 80;
                     //float height_value = x + j;
                     for (int y = 0; y < CHUNK_Y_SIZE; y++)
                     {
