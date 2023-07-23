@@ -3,7 +3,6 @@
 void Chunk::initialiseMesh()
 {
     mesh.initialiseBuffers();
-    mesh.loadTextures();
 }
 
 void Chunk::setWorldPosition(int x, int z)
@@ -28,9 +27,6 @@ const ChunkData& Chunk::getData()
 void Chunk::createMesh(Chunk* pXChunk, Chunk* nXChunk, Chunk* pZChunk, Chunk* nZChunk)
 {
 
-    mesh.initialiseBuffers();
-    mesh.loadTextures();
-
     mesh.beginMeshGeneration();
 
     // testing visible faces
@@ -54,88 +50,88 @@ void Chunk::testMeshSurroundingFaces(int x, int y, int z, Chunk* pXChunk, Chunk*
 
     Block& block = data[x][z][y];
 
-    if (block.type == 0)
+    if (block.type == BlockType::Air)
         return;
     
     glm::vec3 pos = glm::vec3(x * SCALE * 2, y * SCALE * 2, z * SCALE * 2);
 
     if (x > 0)
     {
-        if (data[x - 1][z][y].type == 0)
+        if (data[x - 1][z][y].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::nX, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::nX, pos, SCALE);
         }
     }
     else if (x == 0 && nXChunk != nullptr)
     {
-        if (nXChunk->getData()[CHUNK_X_SIZE - 1][z][y].type == 0)
-            mesh.addMeshData(FaceDirection::nX, pos, SCALE);
+        if (nXChunk->getData()[CHUNK_X_SIZE - 1][z][y].type == BlockType::Air)
+            mesh.addMeshData(block.type, FaceDirection::nX, pos, SCALE);
     }
 
     if (x < CHUNK_X_SIZE - 1)
     {
-        if (data[x + 1][z][y].type == 0)
+        if (data[x + 1][z][y].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::pX, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::pX, pos, SCALE);
         }
     }
     else if (x == CHUNK_X_SIZE - 1 && pXChunk != nullptr)
     {
-        if (pXChunk->getData()[0][z][y].type == 0)
-            mesh.addMeshData(FaceDirection::pX, pos, SCALE);
+        if (pXChunk->getData()[0][z][y].type == BlockType::Air)
+            mesh.addMeshData(block.type, FaceDirection::pX, pos, SCALE);
     }
 
 
     if (z > 0)
     {
-        if (data[x][z - 1][y].type == 0)
+        if (data[x][z - 1][y].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::nZ, pos, SCALE);
         }
     }
     else if (z == 0 && nZChunk != nullptr)
     {
-        if (nZChunk->getData()[x][CHUNK_Z_SIZE - 1][y].type == 0)
-            mesh.addMeshData(FaceDirection::nZ, pos, SCALE);
+        if (nZChunk->getData()[x][CHUNK_Z_SIZE - 1][y].type == BlockType::Air)
+            mesh.addMeshData(block.type, FaceDirection::nZ, pos, SCALE);
     }
     
 
     if (z < CHUNK_Z_SIZE - 1)
     {
-        if (data[x][z + 1][y].type == 0)
+        if (data[x][z + 1][y].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::pZ, pos, SCALE);
         }
     }
     else if (z == CHUNK_Z_SIZE - 1 && pZChunk != nullptr)
     {
-        if (pZChunk->getData()[x][0][y].type == 0)
-            mesh.addMeshData(FaceDirection::pZ, pos, SCALE);
+        if (pZChunk->getData()[x][0][y].type == BlockType::Air)
+            mesh.addMeshData(block.type, FaceDirection::pZ, pos, SCALE);
     }
 
 
     if (y > 0)
     {
-        if (data[x][z][y - 1].type == 0)
+        if (data[x][z][y - 1].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::nY, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::nY, pos, SCALE);
         }
     }
     else if (y == 0)
     {
-        mesh.addMeshData(FaceDirection::nY, pos, SCALE);
+        mesh.addMeshData(block.type, FaceDirection::nY, pos, SCALE);
     }
 
     if (y < CHUNK_Y_SIZE - 1)
     {
-        if (data[x][z][y + 1].type == 0)
+        if (data[x][z][y + 1].type == BlockType::Air)
         {
-            mesh.addMeshData(FaceDirection::pY, pos, SCALE);
+            mesh.addMeshData(block.type, FaceDirection::pY, pos, SCALE);
         }
     }
     else if (y == CHUNK_Y_SIZE - 1)
     {
-        mesh.addMeshData(FaceDirection::pY, pos, SCALE);
+        mesh.addMeshData(block.type, FaceDirection::pY, pos, SCALE);
     }
 
 

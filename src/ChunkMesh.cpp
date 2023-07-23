@@ -21,32 +21,6 @@ void ChunkMesh::initialiseBuffers()
 
 }
 
-void ChunkMesh::loadTextures()
-{
-
-    stbi_set_flip_vertically_on_load(true);
-
-    int width, height, channels;
-    unsigned char* data = stbi_load("dirt.png", &width, &height, &channels, 0);
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    stbi_image_free(data);
-
-}
-
 void ChunkMesh::beginMeshGeneration()
 {
     generating = true;
@@ -73,54 +47,86 @@ void ChunkMesh::endMeshGeneration()
 
 }
 
-void ChunkMesh::addMeshData(FaceDirection faceDir, glm::vec3 local_offset, float scale)
+void ChunkMesh::addMeshData(BlockType blockType, FaceDirection faceDir, glm::vec3 local_offset, float scale)
 {
 
     if (!generating)
         return;
     
+    BlockTextureMap blockTextureMap = TextureLoader::getBlockTextureMap(blockType);
+
     std::array<Vertex, 4> face_verts;
+    TextureUVOffset faceUVOffset;
     float lightStrength;
     if (faceDir == FaceDirection::pX)
     {
         face_verts = pX_verts;
-        lightStrength = 0.8;
+        lightStrength = 0.6;
+
+        // Load side uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.side);
     }
     else if (faceDir == FaceDirection::nX)
     {
         face_verts = nX_verts;
-        lightStrength = 0.8;
+        lightStrength = 0.6;
+
+        // Load side uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.side);
     }
     else if (faceDir == FaceDirection::pZ)
     {
         face_verts = pZ_verts;
-        lightStrength = 0.8;
+        lightStrength = 0.6;
+
+        // Load side uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.side);
     }
     else if (faceDir == FaceDirection::nZ)
     {
         face_verts = nZ_verts;
-        lightStrength = 0.8;
+        lightStrength = 0.6;
+
+        // Load side uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.side);
     }
     else if (faceDir == FaceDirection::pY)
     {
         face_verts = pY_verts;
-        lightStrength = 1;
+        lightStrength = 0.9;
+
+        // Load top uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.top);
     }
     else if (faceDir == FaceDirection::nY)
     {
         face_verts = nY_verts;
         lightStrength = 0.5;
+
+        // Load bottom uv coords
+        faceUVOffset = TextureLoader::getBlockUVOffset(blockTextureMap.bottom);
     }
+
+    //std::cout << faceUVOffset.u << ", " << faceUVOffset.v << std::endl;
 
     for (Vertex vertex : face_verts)
     {
+        // Apply transform to set face position correctly in local chunk space
         vertex.x = vertex.x * scale + local_offset.x;
         vertex.y = vertex.y * scale + local_offset.y;
         vertex.z = vertex.z * scale + local_offset.z;
+
+        // Apply UV coords offset (based on block type)
+        vertex.u = vertex.u * BLOCK_ATLAS_X_MULTIPLIER + faceUVOffset.u;
+        vertex.v = vertex.v * BLOCK_ATLAS_Y_MULTIPLIER + faceUVOffset.v;
+
+        // Apply light strength (based on face direction)
         vertex.lightStrength = lightStrength;
+
         vertex_data_generating.push_back(vertex);
     }
 
+    // Push face indexes into EBO
     vertex_indexes.push_back(vertex_data_generating.size() - 4);
     vertex_indexes.push_back(vertex_data_generating.size() - 3);
     vertex_indexes.push_back(vertex_data_generating.size() - 2);
@@ -128,20 +134,13 @@ void ChunkMesh::addMeshData(FaceDirection faceDir, glm::vec3 local_offset, float
     vertex_indexes.push_back(vertex_data_generating.size() - 2);
     vertex_indexes.push_back(vertex_data_generating.size() - 1);
 
-    //vertex_data_generating.insert(vertex_data_generating.end(), additional_vertex_data.begin(), additional_vertex_data.end());
-
 }
 
 void ChunkMesh::renderMesh()
 {
     glBindVertexArray(VAO);
 
-    glBindTexture(GL_TEXTURE_2D, textureID);
-
-    //glDrawArrays(GL_TRIANGLES, 0, vertex_data.size());
     glDrawElements(GL_TRIANGLES, vertex_indexes.size(), GL_UNSIGNED_INT, 0);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindVertexArray(0);
 }

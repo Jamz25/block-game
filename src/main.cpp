@@ -11,14 +11,14 @@
 #include <glm/gtx/vector_angle.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <stb_image.h>
-#include <OpenSimplexNoise.h>
+#include <FastNoiseLite.h>
 
 #include "Shader.hpp"
 #include "Camera.hpp"
-#include "CubeRenderer.hpp"
 #include "Chunk.hpp"
 #include "ChunkMesh.hpp"
 #include "Block.hpp"
+#include "TextureLoader.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
@@ -31,6 +31,9 @@ void mouse_callback(GLFWwindow* window, int button, int action, int mods);
 void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float deltaTime);
 
 glm::vec4 mousePicker(GLFWwindow* window, Camera& camera);
+
+int WINDOW_WIDTH = 800;
+int WINDOW_HEIGHT = 600;
 
 int main()
 {
@@ -62,17 +65,21 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    glViewport(0, 0, 800, 600);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     Shader shaderProgram("./shader.vs", "./shader.fs");
     Camera playerCamera;
-    playerCamera.setPosition(glm::vec3(20 * 0.5, 5, 20 * 0.5));
-    
+    playerCamera.setPosition(glm::vec3(20 * 0.5, 14, 20 * 0.5));
 
-    srand(time(0));
-    OpenSimplexNoise::Noise terrain_noise(rand());
-    //OpenSimplexNoise::Noise terrain_noise1(rand() * 2);
+    TextureLoader::loadTextures();
+
+    FastNoiseLite noise((unsigned)time(0));
+    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    FastNoiseLite noise_hills((unsigned)time(0) * 2);
+    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    FastNoiseLite noise_caves((unsigned)time(0) / 2);
+    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
     std::array<std::array<std::unique_ptr<Chunk>, 20>, 20> chunks;
 
@@ -92,17 +99,33 @@ int main()
                 for (int z = 0; z < CHUNK_Z_SIZE; z++)
                 {
                     
-                    //double height_value = terrain_noise.eval(i + x, j + z) * 2;
-                    float height_value = j + z;
+                    float height_value = noise.GetNoise((float)(x + i * CHUNK_X_SIZE), (float)(z + j * CHUNK_Z_SIZE)) * 5 + 15;
+                    float extra_height = noise_hills.GetNoise((float)(x + i * CHUNK_X_SIZE), (float)(z + j * CHUNK_Z_SIZE)) * 10;
+                    height_value += extra_height + 80;
+                    //float height_value = x + j;
                     for (int y = 0; y < CHUNK_Y_SIZE; y++)
                     {
-                        if (y < height_value)
+
+                        float cave_value = noise.GetNoise((float)(x + i * CHUNK_X_SIZE), (float)(z + j * CHUNK_Z_SIZE), (float)y);
+
+                        if (y > height_value || cave_value > 0.5)
                         {
-                            chunkData[x][z][y].type = 1;
+                            chunkData[x][z][y].type = BlockType::Air;
                         }
                         else
                         {
-                            chunkData[x][z][y].type = 0;
+                            if (y + 1 >= height_value)
+                            {
+                                chunkData[x][z][y].type = BlockType::Grass;
+                            }
+                            else if (y > height_value - 5)
+                            {
+                                chunkData[x][z][y].type = BlockType::Dirt;
+                            }
+                            else
+                            {
+                                chunkData[x][z][y].type = BlockType::Stone;
+                            }
                         }
                     }
                     
@@ -152,7 +175,7 @@ int main()
     }
 
 
-    const float MOVE_SPEED = 1.6f;
+    const float MOVE_SPEED = 2.0f;
 
     float lastTime = glfwGetTime();
 
@@ -176,10 +199,12 @@ int main()
         shaderProgram.use();
 
         glm::mat4 viewMatrix = playerCamera.calcViewMatrix();
-        glm::mat4 projectionMatrix = playerCamera.calcProjectionMatrix(800, 600);
+        glm::mat4 projectionMatrix = playerCamera.calcProjectionMatrix(WINDOW_WIDTH, WINDOW_HEIGHT);
 
         shaderProgram.setMat4("view", viewMatrix);
         shaderProgram.setMat4("projection", projectionMatrix);
+
+        TextureLoader::bindBlockAtlas();
 
         for (int i = 0; i < 20; i++)
         {
@@ -188,6 +213,8 @@ int main()
                 chunks[i][j]->render(shaderProgram);
             }
         }
+
+        TextureLoader::unbindBlockAtlas();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -203,6 +230,8 @@ int main()
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    WINDOW_WIDTH = width;
+    WINDOW_HEIGHT = height;
     glViewport(0, 0, width, height);
 }
 
@@ -253,10 +282,10 @@ void updateCamera(GLFWwindow* window, Camera& camera, float moveSpeed, float del
     glfwGetCursorPos(window, &xpos, &ypos);
 
     glm::vec2 mouse_rotation;
-    mouse_rotation.y = static_cast<float>(ypos - (600 / 2)) / 600;
-    mouse_rotation.x = static_cast<float>(xpos - (800 / 2)) / 800;
+    mouse_rotation.y = static_cast<float>(ypos - (WINDOW_WIDTH / 2)) / WINDOW_WIDTH;
+    mouse_rotation.x = static_cast<float>(xpos - (WINDOW_HEIGHT / 2)) / WINDOW_HEIGHT;
 
-    glfwSetCursorPos(window, 800 / 2, 600 / 2);
+    glfwSetCursorPos(window, WINDOW_HEIGHT / 2, WINDOW_WIDTH / 2);
     
     camera.updateDirection(mouse_rotation);
 

@@ -3,9 +3,17 @@
 
 #include <vector>
 
+enum class BlockType
+{
+    Air,
+    Grass,
+    Dirt,
+    Stone
+};
+
 struct Block
 {
-    unsigned short type;
+    BlockType type;
 
     /*
     bool pXVisible = true;

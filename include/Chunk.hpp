@@ -21,7 +21,7 @@
 
 #define CHUNK_X_SIZE 16
 #define CHUNK_Z_SIZE 16
-#define CHUNK_Y_SIZE 50
+#define CHUNK_Y_SIZE 200
 
 typedef std::array<std::array<std::array<Block, CHUNK_Y_SIZE>, CHUNK_Z_SIZE>, CHUNK_X_SIZE> ChunkData;
 

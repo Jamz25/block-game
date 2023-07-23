@@ -15,6 +15,8 @@
 #include <stb_image.h>
 
 #include "Shader.hpp"
+#include "TextureLoader.hpp"
+#include "Block.hpp"
 
 struct Vertex
 {
@@ -38,18 +40,15 @@ public:
 
     void initialiseBuffers();
 
-    void loadTextures();
-
     void beginMeshGeneration();
     void endMeshGeneration();
 
-    void addMeshData(FaceDirection faceDir, glm::vec3 local_offset, float scale);
+    void addMeshData(BlockType blockType, FaceDirection faceDir, glm::vec3 local_offset, float scale);
 
     void renderMesh();
 
 private:
     GLuint VAO, VBO, EBO;
-    GLuint textureID;
 
     std::vector<Vertex> vertex_data;
     std::vector<Vertex> vertex_data_generating;
