@@ -130,9 +130,9 @@ void ChunkMesh::addMeshData(BlockType blockType, FaceDirection faceDir, glm::vec
     vertex_indexes.push_back(vertex_data_generating.size() - 4);
     vertex_indexes.push_back(vertex_data_generating.size() - 3);
     vertex_indexes.push_back(vertex_data_generating.size() - 2);
-    vertex_indexes.push_back(vertex_data_generating.size() - 3);
-    vertex_indexes.push_back(vertex_data_generating.size() - 2);
     vertex_indexes.push_back(vertex_data_generating.size() - 1);
+    vertex_indexes.push_back(vertex_data_generating.size() - 2);
+    vertex_indexes.push_back(vertex_data_generating.size() - 3);
 
 }
 

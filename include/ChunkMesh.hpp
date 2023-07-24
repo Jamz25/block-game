@@ -104,8 +104,8 @@ private:
 
     static constexpr std::array<Vertex, 4> nY_verts = {
         Vertex{-1, -1, 1, 0, 0},
-        Vertex{1, -1, 1, 1, 0},
         Vertex{-1, -1, -1, 0, 1},
+        Vertex{1, -1, 1, 1, 0},
         //Vertex{1, -1, 1, 1, 0},
         //Vertex{-1, -1, -1, 0, 1},
         Vertex{1, -1, -1, 1, 1}
